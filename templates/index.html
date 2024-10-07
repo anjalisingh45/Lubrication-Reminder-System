@@ -1,0 +1,223 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lubrication Schedule</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Inline CSS can be used to ensure styling, or include in styles.css -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            display: flex;
+            justify-content: center; /* Centering the content */
+            align-items: center;
+            position: relative;
+            margin: 20px;
+            padding: 0 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin: 0;
+            text-align: center;
+        }
+
+        .logo {
+            position: absolute;
+            right: 50px; /* Aligning the logo to the right */
+            max-width: 125px; /* Adjust the size as necessary */
+        }
+
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #93cfda;
+            text-align: center;
+        }
+
+        th {
+            background-color: #3faac5;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #c0dfda;
+        }
+
+        button {
+            padding: 5px 10px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .approve-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .reject-btn {
+            background-color: #f44336;
+            color: hsl(0, 0%, 100%);
+        }
+
+        /* Modal styling */
+        #rejectModal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            border: 2px solid #ccc;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+
+        #rejectModal h2 {
+            color: #f44336;
+        }
+
+        #rejectModal label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        #rejectModal input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        #rejectModal button {
+            margin-top: 10px;
+            padding: 8px 12px;
+        }
+
+        #closeModal {
+            background-color: #777;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Lubrication Reminder System</h1>
+        <img src="{{ url_for('static', filename='images/srf-logo-50.png') }}" alt="Company Logo" class="logo">
+    </div>
+
+    <table id="excelTable">
+        <thead>
+            <tr>
+                <th>SR.NO</th>
+                <th>Component</th>
+                <th>Lubricant</th>
+                <th>Interval</th>
+                <th>Quantity</th>
+                <th>Last Done</th>
+                <th>Due Date</th>
+                <th>Done Date</th>
+                <th>Approved</th>
+                <th>Rejected</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if data %}
+                {% for row in data %}
+                <tr>
+                    {% for value in row.values() %}
+                    <td>{{ value }}</td>
+                    {% endfor %}
+                    <td>
+                        <button class="approve-btn">Approve</button>
+                        <button class="reject-btn">Reject</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="10">No data available</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <div id="rejectModal" style="display:none;">
+        <h2>Reject Task</h2>
+        <form id="rejectForm">
+            <input type="hidden" name="serial_no" id="serial_no">
+            <label for="reason">Reason:</label>
+            <input type="text" name="reason" id="reason" required>
+            <label for="suggested_time">Suggested Time:</label>
+            <input type="text" name="suggested_time" id="suggested_time" required>
+            <button type="submit">Submit Rejection</button>
+            <button type="button" id="closeModal">Close</button>
+        </form>
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Show the reject modal and set the serial number
+            $('.reject-btn').click(function() {
+                var row = $(this).closest('tr');
+                var serialNo = row.find('td:nth-child(1)').text(); // Assuming SR.NO is the first column
+                $('#serial_no').val(serialNo);
+                $('#rejectModal').show();
+            });
+    
+            // Close the modal
+            $('#closeModal').click(function() {
+                $('#rejectModal').hide();
+            });
+    
+            // Handle rejection form submission
+            $('#rejectForm').submit(function(e) {
+                e.preventDefault(); // Prevent the form from submitting normally
+                var serialNo = $('#serial_no').val();
+                var reason = $('#reason').val();
+                var suggestedTime = $('#suggested_time').val();
+    
+                // Update the row to reflect rejection
+                var row = $('#excelTable tbody tr').filter(function() {
+                    return $(this).find('td:nth-child(1)').text() === serialNo;
+                });
+                row.find('td:nth-child(9)').text('Rejected'); // Update Approved column
+                row.find('td:nth-child(10)').text('Yes: ' + reason); // Update Rejected column with reason
+    
+                // Hide the modal
+                $('#rejectModal').hide();
+    
+                // Optionally, clear the input fields
+                $('#rejectForm')[0].reset();
+            });
+    
+            // Handle approval button click
+            $('.approve-btn').click(function() {
+                var row = $(this).closest('tr');
+                row.find('td:nth-child(9)').text('Approved'); // Update Approved column
+                row.find('td:nth-child(10)').text(''); // Clear Rejected column
+            });
+        });
+    </script>
+    
+</body>
+</html>

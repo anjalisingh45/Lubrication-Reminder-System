@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reject Task</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: linear-gradient(135deg, #6e7f80, #e9eff1);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center; /* Center text within the container */
+        }
+
+        .logo {
+            width: 80%; /* Responsive logo width */
+            max-width: 150px; /* Maximum logo size */
+            margin: 0 auto 20px; /* Centered logo with margin */
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            text-align: left; /* Align labels to the left */
+            margin: 15px 0 5px;
+            color: #555;
+        }
+
+        textarea, input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            text-align: center; /* Center text input within the fields */
+        }
+
+        input[type="submit"] {
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #4cae4c;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            input[type="submit"] {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="{{ url_for('static', filename='images/srf-logo-50.png') }}" alt="Company Logo" class="logo">
+        <h1>Reject Task: {{ serial_no }}  {{component}}</h1>
+        <form action="{{ url_for('submit_rejection') }}" method="POST">
+            <input type="hidden" name="serial_no" value="{{ serial_no }}">
+            <label for="reason">Reason for Rejection:</label>
+            <textarea id="reason" name="reason" rows="4" required></textarea>
+            <label for="suggested_time">Suggested Time:</label>
+            <input type="date" id="suggested_time" name="suggested_time" required>
+            <input type="submit" value="Submit">
+        </form>
+        <br>
+    <a href="{{ url_for('index') }}">Back to Home</a>
+    </div>
+</body>
+</html>
